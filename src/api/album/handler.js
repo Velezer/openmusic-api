@@ -13,16 +13,12 @@ class AlbumHandler {
     }
 
     async postAlbumHandler(request, h) {
-        try {
-            this._validator.validateAlbumPayload(request.payload)
-            const { name, year } = request.payload
+        this._validator.validateAlbumPayload(request.payload)
+        const { name, year } = request.payload
 
-            const albumId = await this._service.addAlbum({ name, year })
-            const data = { albumId }
-            return new Response(h).success('album added', 201, data)
-        } catch (error) {
-            return new Response(h).errorAll(error)
-        }
+        const albumId = await this._service.addAlbum({ name, year })
+        const data = { albumId }
+        return new Response(h).success('album added', 201, data)
     }
 
     async getAlbumsHandler(request, h) {
@@ -34,43 +30,28 @@ class AlbumHandler {
     }
 
     async getAlbumByIdHandler(request, h) {
-        try {
-            const { id } = request.params
-            const album = await this._service.getAlbumById(id)
-            const data = {
-                album
-            }
-            return new Response(h).success(null, 200, data)
-        } catch (error) {
-            return new Response(h).errorAll(error)
+        const { id } = request.params
+        const album = await this._service.getAlbumById(id)
+        const data = {
+            album
         }
+        return new Response(h).success(null, 200, data)
     }
 
     async putAlbumByIdHandler(request, h) {
-        try {
-            this._validator.validateAlbumPayload(request.payload)
-            const { id } = request.params
+        this._validator.validateAlbumPayload(request.payload)
+        const { id } = request.params
 
-            await this._service.editAlbumById(id, request.payload)
+        await this._service.editAlbumById(id, request.payload)
 
-            return {
-                status: 'success',
-                message: 'Catatan berhasil diperbarui'
-            }
-        } catch (error) {
-            return new Response(h).errorAll(error)
-        }
+        return new Response(h).success('edit album success', 200, null)
     }
 
     async deleteAlbumByIdHandler(request, h) {
-        try {
-            const { id } = request.params
-            await this._service.deleteAlbumById(id)
+        const { id } = request.params
+        await this._service.deleteAlbumById(id)
 
-            return new Response(h).success('deleted success', 200)
-        } catch (error) {
-            return new Response(h).errorAll(error)
-        }
+        return new Response(h).success('deleted success', 200)
     }
 }
 

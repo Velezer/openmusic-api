@@ -6,17 +6,11 @@ const InternalServerError = require('../exceptions/InternalServerError')
 
 class AlbumService {
     constructor() {
-        this._pool = new Pool({
-            user: process.env.PGUSER,
-            host: process.env.PGHOST,
-            database: process.env.PGDATABASE,
-            password: process.env.PGPASSWORD,
-            port: process.env.PGPORT
-        })
+        this._pool = new Pool()
     }
 
     async addAlbum({ name, year }) {
-        const id = nanoid(16)
+        const id = `album-${nanoid(16)}`
         const createdAt = new Date().toISOString()
         const updatedAt = createdAt
 

@@ -4,6 +4,8 @@ require('dotenv').config()
 const Hapi = require('@hapi/hapi')
 const album = require('./api/album')
 const song = require('./api/song')
+const HttpError = require('./exceptions/HttpError')
+const Response = require('./responses/response')
 const AlbumsService = require('./services/AlbumService')
 const SongService = require('./services/SongService')
 const AlbumValidator = require('./validator/album')
@@ -20,19 +22,31 @@ const init = async() => {
         }
     })
 
-    await server.register({
+    await server.register([{
         plugin: album,
         options: {
             service: new AlbumsService(),
             validator: AlbumValidator
         }
-    })
-    await server.register({
+    },
+    {
         plugin: song,
         options: {
             service: new SongService(),
             validator: SongValidator
         }
+    }
+    ]
+    )
+
+    server.ext('onPreResponse', (request, h) => {
+        const { response } = request
+
+        if (response instanceof HttpError) {
+            return new Response(h).errorAll(response)
+        }
+
+        return response.continue || response
     })
 
     await server.start()
