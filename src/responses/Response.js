@@ -1,6 +1,8 @@
 const BadRequestError = require('../exceptions/BadRequestError')
+const ForbiddenError = require('../exceptions/ForbiddenError')
 const InternalServerError = require('../exceptions/InternalServerError')
 const NotFoundError = require('../exceptions/NotFoundError')
+const UnauthorizedError = require('../exceptions/UnauthorizedError')
 
 class Response {
     constructor(h) {
@@ -36,7 +38,11 @@ class Response {
     }
 
     errorAll(error) {
-        if (error instanceof BadRequestError || error instanceof NotFoundError) {
+        if (error instanceof BadRequestError ||
+            error instanceof NotFoundError ||
+            error instanceof UnauthorizedError ||
+            error instanceof ForbiddenError
+        ) {
             return this.fail(error.message, error.statusCode)
         }
 
