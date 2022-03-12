@@ -2,16 +2,33 @@
 require('dotenv').config()
 
 const Hapi = require('@hapi/hapi')
-const album = require('./api/album')
-const song = require('./api/song')
+const Jwt = require('@hapi/jwt')
+
 const HttpError = require('./exceptions/HttpError')
 const Response = require('./responses/response')
+
+const album = require('./api/album')
 const AlbumsService = require('./services/AlbumService')
-const SongService = require('./services/SongService')
 const AlbumValidator = require('./validator/album')
+
+const song = require('./api/song')
+const SongService = require('./services/SongService')
 const SongValidator = require('./validator/song')
 
+const users = require('./api/users')
+const UsersService = require('./services/UsersService')
+const UsersValidator = require('./validator/users')
+
+const authentications = require('./api/authentications')
+const AuthenticationsService = require('./services/AuthenticationsService')
+const AuthenticationsValidator = require('./validator/authentications')
+
+const TokenManager = require('./tokenize/TokenManager')
+
 const init = async() => {
+    const usersService = new UsersService()
+    const authenticationsService = new AuthenticationsService()
+
     const server = Hapi.server({
         port: process.env.PORT,
         host: process.env.HOST,
@@ -20,6 +37,28 @@ const init = async() => {
                 origin: ['*']
             }
         }
+    })
+
+    await server.register([
+        {
+            plugin: Jwt
+        }
+    ])
+
+    server.auth.strategy('notesapp_jwt', 'jwt', {
+        keys: process.env.ACCESS_TOKEN_KEY,
+        verify: {
+            aud: false,
+            iss: false,
+            sub: false,
+            maxAgeSec: process.env.ACCESS_TOKEN_AGE
+        },
+        validate: (artifacts) => ({
+            isValid: true,
+            credentials: {
+                id: artifacts.decoded.payload.id
+            }
+        })
     })
 
     await server.register([{
@@ -34,6 +73,22 @@ const init = async() => {
         options: {
             service: new SongService(),
             validator: SongValidator
+        }
+    },
+    {
+        plugin: users,
+        options: {
+            service: usersService,
+            validator: UsersValidator
+        }
+    },
+    {
+        plugin: authentications,
+        options: {
+            authenticationsService,
+            usersService,
+            tokenManager: TokenManager,
+            validator: AuthenticationsValidator
         }
     }
     ]
