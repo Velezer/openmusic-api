@@ -3,10 +3,14 @@ const { nanoid } = require('nanoid')
 const BadRequestError = require('../exceptions/BadRequestError')
 const { dtoAllPlaylistsFromDB } = require('../dto/playlist.dto')
 const ForbiddenError = require('../exceptions/ForbiddenError')
+const SongService = require('./SongService')
 
 class PlaylistsService {
     constructor() {
         this._pool = new Pool()
+        this.songService = new SongService()
+
+        this.addSongPlaylist = this.addSongPlaylist.bind(this)
     }
 
     async addPlaylist(name, userId) {
@@ -21,6 +25,24 @@ class PlaylistsService {
 
         if (!result.rows.length) {
             throw new BadRequestError('playlist gagal ditambahkan')
+        }
+        return result.rows[0].id
+    }
+
+    async addSongPlaylist(playlistId, songId) {
+        await this.songService.getSongById(songId)
+
+        const id = `collab-${nanoid(16)}`
+
+        const query = {
+            text: 'INSERT INTO playsongs VALUES($1, $2, $3) RETURNING id',
+            values: [id, playlistId, songId]
+        }
+
+        const result = await this._pool.query(query).catch(err => console.log(err))
+
+        if (!result.rows.length) {
+            throw new BadRequestError('song playlist gagal ditambahkan')
         }
         return result.rows[0].id
     }
@@ -55,10 +77,10 @@ class PlaylistsService {
         }
     }
 
-    async verifyUser(id, userId) {
+    async verifyUser(playlistId, userId) {
         const query = {
             text: 'SELECT * FROM playlists WHERE id = $1 AND user_id = $2',
-            values: [id, userId]
+            values: [playlistId, userId]
         }
 
         const result = await this._pool.query(query)

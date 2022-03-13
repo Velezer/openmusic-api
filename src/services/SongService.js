@@ -6,13 +6,7 @@ const InternalServerError = require('../exceptions/InternalServerError')
 
 class SongService {
     constructor() {
-        this._pool = new Pool({
-            user: process.env.PGUSER,
-            host: process.env.PGHOST,
-            database: process.env.PGDATABASE,
-            password: process.env.PGPASSWORD,
-            port: process.env.PGPORT
-        })
+        this._pool = new Pool()
     }
 
     async addSong({ title, year, genre, performer, duration, albumId }) {
@@ -46,7 +40,7 @@ class SongService {
         }
         const result = await this._pool.query(query)
         if (!result.rows.length) {
-            throw new NotFoundError('id not found')
+            throw new NotFoundError('song id not found')
         }
 
         return result.rows.map(dtoSongFromDB)[0]
