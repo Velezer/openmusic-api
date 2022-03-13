@@ -2,7 +2,6 @@
 class PlaylistsHandler {
     constructor(PlaylistsService, notesService, validator) {
         this._playlistsService = PlaylistsService
-        this._notesService = notesService
         this._validator = validator
 
         this.postPlaylistHandler = this.postPlaylistHandler.bind(this)
@@ -10,6 +9,7 @@ class PlaylistsHandler {
         this.getSongsPlaylistHandler = this.getSongsPlaylistHandler.bind(this)
         this.getPlaylistHandler = this.getPlaylistHandler.bind(this)
         this.deletePlaylistHandler = this.deletePlaylistHandler.bind(this)
+        this.deleteSongPlaylistHandler = this.deleteSongPlaylistHandler.bind(this)
     }
 
     async postPlaylistHandler(request, h) {
@@ -50,12 +50,30 @@ class PlaylistsHandler {
         return response
     }
 
+    async deleteSongPlaylistHandler(request, h) {
+        this._validator.validateSongPlaylistPayload(request.payload)
+        const { id: userId } = request.auth.credentials
+        const { playlistId } = request.params
+        const { songId } = request.payload
+
+        await this._playlistsService.verifyUser(playlistId, userId)
+        await this._playlistsService.deleteSongPlaylist(playlistId, songId)
+
+        const response = h.response({
+            status: 'success',
+            message: 'song playlist berhasil dihapus'
+        })
+        return response
+    }
+
     async getSongsPlaylistHandler(request, h) {
         const { id: userId } = request.auth.credentials
         const { playlistId } = request.params
 
+        const playlist = await this._playlistsService.getPlaylistById(playlistId)
         await this._playlistsService.verifyUser(playlistId, userId)
-        const playlist = await this._playlistsService.getSongsPlaylist(playlistId)
+        const songs = await this._playlistsService.getSongsPlaylist(playlistId)
+        playlist.songs = songs
 
         const response = h.response({
             status: 'success',

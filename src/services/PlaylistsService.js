@@ -4,6 +4,7 @@ const BadRequestError = require('../exceptions/BadRequestError')
 const { dtoAllPlaylistsFromDB, dtoSongsPlaylistsFromDB } = require('../dto/playlist.dto')
 const ForbiddenError = require('../exceptions/ForbiddenError')
 const SongService = require('./SongService')
+const NotFoundError = require('../exceptions/NotFoundError')
 
 class PlaylistsService {
     constructor() {
@@ -49,7 +50,6 @@ class PlaylistsService {
     }
 
     async getSongsPlaylist(playlistId) {
-        const playlist = await this.getPlaylistById(playlistId)
         const query = {
             text: `SELECT *
                     FROM playsongs 
@@ -64,8 +64,8 @@ class PlaylistsService {
         if (!result.rows.length) {
             throw new BadRequestError('song playlist kosong')
         }
-        playlist.songs = result.rows.map(dtoSongsPlaylistsFromDB)
-        return playlist
+        const songs = result.rows.map(dtoSongsPlaylistsFromDB)
+        return songs
     }
 
     async getPlaylistById(playlistId) {
@@ -80,7 +80,7 @@ class PlaylistsService {
         const result = await this._pool.query(query)
 
         if (!result.rows.length) {
-            throw new BadRequestError('playlist gagal diambil')
+            throw new NotFoundError('playlist tidak ada')
         }
         return result.rows.map(dtoAllPlaylistsFromDB)[0]
     }
@@ -106,6 +106,19 @@ class PlaylistsService {
         const query = {
             text: 'DELETE FROM playlists WHERE id = $1 AND user_id = $2 RETURNING id',
             values: [id, userId]
+        }
+
+        const result = await this._pool.query(query)
+
+        if (!result.rows.length) {
+            throw new BadRequestError('playlist gagal dihapus')
+        }
+    }
+
+    async deleteSongPlaylist(playlistId, songId) {
+        const query = {
+            text: 'DELETE FROM playsongs WHERE playlist_id = $1 AND song_id = $2 RETURNING id',
+            values: [playlistId, songId]
         }
 
         const result = await this._pool.query(query)
