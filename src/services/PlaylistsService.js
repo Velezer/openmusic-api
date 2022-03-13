@@ -1,7 +1,7 @@
 const { Pool } = require('pg')
 const { nanoid } = require('nanoid')
 const BadRequestError = require('../exceptions/BadRequestError')
-const { dtoAllPlaylistsFromDB } = require('../dto/playlist.dto')
+const { dtoAllPlaylistsFromDB, dtoSongsPlaylistsFromDB } = require('../dto/playlist.dto')
 const ForbiddenError = require('../exceptions/ForbiddenError')
 const SongService = require('./SongService')
 
@@ -11,10 +11,11 @@ class PlaylistsService {
         this.songService = new SongService()
 
         this.addSongPlaylist = this.addSongPlaylist.bind(this)
+        this.getSongsPlaylist = this.getSongsPlaylist.bind(this)
     }
 
     async addPlaylist(name, userId) {
-        const id = `collab-${nanoid(16)}`
+        const id = `playlist-${nanoid(16)}`
 
         const query = {
             text: 'INSERT INTO playlists VALUES($1, $2, $3) RETURNING id',
@@ -32,7 +33,7 @@ class PlaylistsService {
     async addSongPlaylist(playlistId, songId) {
         await this.songService.getSongById(songId)
 
-        const id = `collab-${nanoid(16)}`
+        const id = `playsong-${nanoid(16)}`
 
         const query = {
             text: 'INSERT INTO playsongs VALUES($1, $2, $3) RETURNING id',
@@ -45,6 +46,43 @@ class PlaylistsService {
             throw new BadRequestError('song playlist gagal ditambahkan')
         }
         return result.rows[0].id
+    }
+
+    async getSongsPlaylist(playlistId) {
+        const playlist = await this.getPlaylistById(playlistId)
+        const query = {
+            text: `SELECT *
+                    FROM playsongs 
+                    JOIN songs ON songs.id = playsongs.song_id
+                    JOIN playlists ON playlists.id = playsongs.playlist_id
+                    WHERE playsongs.playlist_id = $1`,
+            values: [playlistId]
+        }
+
+        const result = await this._pool.query(query).catch(err => console.log(err))
+
+        if (!result.rows.length) {
+            throw new BadRequestError('song playlist kosong')
+        }
+        playlist.songs = result.rows.map(dtoSongsPlaylistsFromDB)
+        return playlist
+    }
+
+    async getPlaylistById(playlistId) {
+        const query = {
+            text: `SELECT playlists.*, users.username
+                    FROM playlists
+                    JOIN users ON users.id = playlists.user_id
+                    WHERE playlists.id = $1`,
+            values: [playlistId]
+        }
+
+        const result = await this._pool.query(query)
+
+        if (!result.rows.length) {
+            throw new BadRequestError('playlist gagal diambil')
+        }
+        return result.rows.map(dtoAllPlaylistsFromDB)[0]
     }
 
     async getPlaylists(userId) {

@@ -7,6 +7,7 @@ class PlaylistsHandler {
 
         this.postPlaylistHandler = this.postPlaylistHandler.bind(this)
         this.postSongPlaylistHandler = this.postSongPlaylistHandler.bind(this)
+        this.getSongsPlaylistHandler = this.getSongsPlaylistHandler.bind(this)
         this.getPlaylistHandler = this.getPlaylistHandler.bind(this)
         this.deletePlaylistHandler = this.deletePlaylistHandler.bind(this)
     }
@@ -40,12 +41,28 @@ class PlaylistsHandler {
 
         const response = h.response({
             status: 'success',
-            message: 'playlist berhasil ditambahkan',
+            message: 'song playlist berhasil ditambahkan',
             data: {
                 playsongId
             }
         })
         response.code(201)
+        return response
+    }
+
+    async getSongsPlaylistHandler(request, h) {
+        const { id: userId } = request.auth.credentials
+        const { playlistId } = request.params
+
+        await this._playlistsService.verifyUser(playlistId, userId)
+        const playlist = await this._playlistsService.getSongsPlaylist(playlistId)
+
+        const response = h.response({
+            status: 'success',
+            data: {
+                playlist
+            }
+        })
         return response
     }
 

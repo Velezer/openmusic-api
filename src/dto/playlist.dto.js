@@ -9,5 +9,14 @@ const dtoAllPlaylistsFromDB = ({
     name,
     username
 })
+const dtoSongsPlaylistsFromDB = ({
+    song_id,
+    title,
+    performer
+}) => ({
+    id: song_id,
+    title,
+    performer
+})
 
-module.exports = { dtoAllPlaylistsFromDB }
+module.exports = { dtoAllPlaylistsFromDB, dtoSongsPlaylistsFromDB }
