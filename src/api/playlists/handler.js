@@ -42,12 +42,11 @@ class PlaylistsHandler {
     }
 
     async deletePlaylistHandler(request, h) {
-        this._validator.validatePlaylistPayload(request.payload)
-        const { id: credentialId } = request.auth.credentials
-        const { noteId, userId } = request.payload
+        const { id: userId } = request.auth.credentials
+        const { id } = request.params
 
-        await this._notesService.verifyNoteOwner(noteId, credentialId)
-        await this._playlistsService.deletePlaylist(noteId, userId)
+        await this._playlistsService.verifyUser(id, userId)
+        await this._playlistsService.deletePlaylist(id, userId)
 
         return {
             status: 'success',

@@ -2,6 +2,7 @@ const { Pool } = require('pg')
 const { nanoid } = require('nanoid')
 const BadRequestError = require('../exceptions/BadRequestError')
 const { dtoAllPlaylistsFromDB } = require('../dto/playlist.dto')
+const ForbiddenError = require('../exceptions/ForbiddenError')
 
 class PlaylistsService {
     constructor() {
@@ -26,7 +27,6 @@ class PlaylistsService {
 
     async getPlaylists(userId) {
         const query = {
-            // text: 'SELECT * FROM playlists WHERE user_id = $1',
             text: `SELECT playlists.*, users.username
                     FROM playlists
                     JOIN users ON users.id = playlists.user_id
@@ -42,10 +42,10 @@ class PlaylistsService {
         return result.rows.map(dtoAllPlaylistsFromDB)
     }
 
-    async deletePlaylist(noteId, userId) {
+    async deletePlaylist(id, userId) {
         const query = {
-            text: 'DELETE FROM playlists WHERE note_id = $1 AND user_id = $2 RETURNING id',
-            values: [noteId, userId]
+            text: 'DELETE FROM playlists WHERE id = $1 AND user_id = $2 RETURNING id',
+            values: [id, userId]
         }
 
         const result = await this._pool.query(query)
@@ -55,16 +55,16 @@ class PlaylistsService {
         }
     }
 
-    async verifyCollaborator(noteId, userId) {
+    async verifyUser(id, userId) {
         const query = {
-            text: 'SELECT * FROM playlists WHERE note_id = $1 AND user_id = $2',
-            values: [noteId, userId]
+            text: 'SELECT * FROM playlists WHERE id = $1 AND user_id = $2',
+            values: [id, userId]
         }
 
         const result = await this._pool.query(query)
 
         if (!result.rows.length) {
-            throw new BadRequestError('playlist gagal diverifikasi')
+            throw new ForbiddenError('playlist gagal diverifikasi')
         }
     }
 }
