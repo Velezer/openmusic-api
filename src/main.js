@@ -29,6 +29,10 @@ const playlists = require('./api/playlists')
 const PlaylistsService = require('./services/playlistsService')
 const PlaylistsValidator = require('./validator/playlists')
 
+const exportPlugin = require('./api/export')
+const ProducerService = require('./services/ProducerService')
+const ExportsValidator = require('./validator/exports')
+
 const init = async() => {
     const songsService = new SongService()
     const usersService = new UsersService()
@@ -103,6 +107,14 @@ const init = async() => {
             playlistsService,
             songsService,
             validator: PlaylistsValidator
+        }
+    },
+    {
+        plugin: exportPlugin,
+        options: {
+            service: ProducerService,
+            validator: ExportsValidator,
+            playlistsService
         }
     }
     ]
