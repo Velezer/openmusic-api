@@ -16,6 +16,9 @@ exports.up = pgm => {
             type: 'integer',
             notNull: true
         },
+        cover_url: {
+            type: 'TEXT'
+        },
         created_at: {
             type: 'timestamp',
             notNull: true
