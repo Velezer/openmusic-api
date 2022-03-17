@@ -141,8 +141,6 @@ class AlbumService {
             values: [albumId]
         }
         const result = await this._pool.query(query)
-        console.log(result.rowCount)
-        console.log(result.rows)
         return result.rowCount
     }
 }
