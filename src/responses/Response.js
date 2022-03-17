@@ -20,6 +20,12 @@ class Response {
         return response
     }
 
+    return(statusCode, object) {
+        const response = this._h.response(object)
+        response.code(statusCode)
+        return response
+    }
+
     success(message = null, statusCode, data = null) {
         return this.makeResponse('success', message, statusCode, data)
     }

@@ -10,6 +10,8 @@ class AlbumHandler {
         this.getAlbumByIdHandler = this.getAlbumByIdHandler.bind(this)
         this.putAlbumByIdHandler = this.putAlbumByIdHandler.bind(this)
         this.deleteAlbumByIdHandler = this.deleteAlbumByIdHandler.bind(this)
+        this.postLikeOrDislikeAlbumHandler = this.postLikeOrDislikeAlbumHandler.bind(this)
+        this.getAlbumLikesHandler = this.getAlbumLikesHandler.bind(this)
     }
 
     async postAlbumHandler(request, h) {
@@ -19,6 +21,38 @@ class AlbumHandler {
         const albumId = await this._service.addAlbum({ name, year })
         const data = { albumId }
         return new Response(h).success('album added', 201, data)
+    }
+
+    async postLikeOrDislikeAlbumHandler(request, h) {
+        const { albumId } = request.params
+        const { id: userId } = request.auth.credentials
+        await this._service.getAlbumById(albumId)
+
+        const isLiked = await this._service.isLiked({ albumId, userId })
+
+        let message
+        if (!isLiked) {
+            await this._service.like({ albumId, userId })
+            message = 'like sukses'
+        } else {
+            await this._service.dislike({ albumId, userId })
+            message = 'dislike sukses'
+        }
+        return new Response(h).return(201, {
+            status: 'success',
+            message
+        })
+    }
+
+    async getAlbumLikesHandler(request, h) {
+        const { albumId } = request.params
+        const data = {
+            likes: await this._service.getLikes(albumId)
+        }
+        return new Response(h).return(200, {
+            status: 'success',
+            data
+        })
     }
 
     async getAlbumsHandler(request, h) {

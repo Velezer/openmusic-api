@@ -87,6 +87,64 @@ class AlbumService {
             throw new NotFoundError('id not found')
         }
     }
+
+    async like({ albumId, userId }) {
+        const id = `albumlikes-${nanoid(16)}`
+
+        const query = {
+            text: 'INSERT INTO albumlikes VALUES($1, $2, $3) RETURNING id',
+            values: [id, albumId, userId]
+        }
+
+        const result = await this._pool.query(query).catch(err => console.log(err))
+
+        if (!result.rows[0].id) {
+            throw new InternalServerError('like album failed')
+        }
+
+        return result.rows[0].id
+    }
+
+    async dislike({ albumId, userId }) {
+        const query = {
+            text: 'DELETE FROM albumlikes WHERE album_id = $1 AND user_id = $2 RETURNING id',
+            values: [albumId, userId]
+        }
+
+        const result = await this._pool.query(query)
+
+        if (!result.rows[0].id) {
+            throw new InternalServerError('dislike album failed')
+        }
+
+        return result.rows[0].id
+    }
+
+    async isLiked({ albumId, userId }) {
+        const query = {
+            text: 'SELECT * FROM albumlikes WHERE album_id = $1 AND user_id = $2',
+            values: [albumId, userId]
+        }
+
+        const result = await this._pool.query(query)
+
+        if (result.rowCount > 0) {
+            return true
+        }
+
+        return false
+    }
+
+    async getLikes(albumId) {
+        const query = {
+            text: 'SELECT * FROM albumlikes WHERE album_id = $1',
+            values: [albumId]
+        }
+        const result = await this._pool.query(query)
+        console.log(result.rowCount)
+        console.log(result.rows)
+        return result.rowCount
+    }
 }
 
 module.exports = AlbumService
