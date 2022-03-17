@@ -33,12 +33,19 @@ const exportPlugin = require('./api/export')
 const ProducerService = require('./services/ProducerService')
 const ExportsValidator = require('./validator/exports')
 
+const uploadCoverAlbum = require('./api/upload-cover-album')
+const StorageService = require('./services/StorageService')
+const UploadCoverAlbumValidator = require('./validator/uploads')
+
 const init = async() => {
+    const albumService = new AlbumsService()
     const songsService = new SongService()
     const usersService = new UsersService()
     const authenticationsService = new AuthenticationsService()
 
     const playlistsService = new PlaylistsService()
+    const storageService = new StorageService('cover')
+
     const server = Hapi.server({
         port: process.env.PORT,
         host: process.env.HOST,
@@ -74,7 +81,7 @@ const init = async() => {
     await server.register([{
         plugin: album,
         options: {
-            service: new AlbumsService(),
+            service: albumService,
             validator: AlbumValidator
         }
     },
@@ -115,6 +122,14 @@ const init = async() => {
             service: ProducerService,
             validator: ExportsValidator,
             playlistsService
+        }
+    },
+    {
+        plugin: uploadCoverAlbum,
+        options: {
+            service: storageService,
+            validator: UploadCoverAlbumValidator,
+            albumService
         }
     }
     ]
