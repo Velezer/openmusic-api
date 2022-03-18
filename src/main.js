@@ -37,8 +37,11 @@ const uploadCoverAlbum = require('./api/upload-cover-album')
 const StorageService = require('./services/StorageService')
 const UploadCoverAlbumValidator = require('./validator/uploads')
 
+const CacheService = require('./services/CacheService')
+
 const init = async() => {
-    const albumService = new AlbumsService()
+    const cacheService = new CacheService()
+    const albumService = new AlbumsService(cacheService)
     const songsService = new SongService()
     const usersService = new UsersService()
     const authenticationsService = new AuthenticationsService()

@@ -5,8 +5,9 @@ const { dtoAlbumFromDB } = require('../dto/album.dto')
 const InternalServerError = require('../exceptions/InternalServerError')
 
 class AlbumService {
-    constructor() {
+    constructor(cacheService) {
         this._pool = new Pool()
+        this._cacheService = cacheService
     }
 
     async addAlbum({ name, year }) {
@@ -102,6 +103,7 @@ class AlbumService {
             throw new InternalServerError('like album failed')
         }
 
+        await this._cacheService.delete(`albumlikes:${albumId}`)
         return result.rows[0].id
     }
 
@@ -117,6 +119,7 @@ class AlbumService {
             throw new InternalServerError('dislike album failed')
         }
 
+        await this._cacheService.delete(`albumlikes:${albumId}`)
         return result.rows[0].id
     }
 
@@ -136,12 +139,20 @@ class AlbumService {
     }
 
     async getLikes(albumId) {
+        try {
+            const result = await this._cacheService.get(`albumlikes:${albumId}`)
+            return { likes: +result, isCache: true }
+        } catch (error) {}
+
         const query = {
             text: 'SELECT * FROM albumlikes WHERE album_id = $1',
             values: [albumId]
         }
         const result = await this._pool.query(query)
-        return result.rowCount
+
+        await this._cacheService.set(`albumlikes:${albumId}`, result.rowCount)
+
+        return { likes: result.rowCount, isCache: false }
     }
 }
 
