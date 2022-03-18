@@ -16,7 +16,6 @@ class ExportHandler {
         await this._playlistsService.verifyUser(playlistId, userId)
 
         const message = {
-            userId,
             targetEmail: request.payload.targetEmail,
             playlistId
         }
