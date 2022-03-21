@@ -1,8 +1,8 @@
 const { Pool } = require('pg')
-const BadRequestError = require('../exceptions/BadRequestError')
-const { dtoAllPlaylistsFromDB, dtoSongsPlaylistsFromDB } = require('../dto/playlist.dto')
+const { dtoAllPlaylistsFromDB, dtoSongsPlaylistsFromDB } = require('./dto/playlist.dto')
+const BadRequestError = require('./exceptions/BadRequestError')
+const NotFoundError = require('./exceptions/NotFoundError')
 const SongService = require('./SongService')
-const NotFoundError = require('../exceptions/NotFoundError')
 
 class PlaylistsService {
     constructor() {

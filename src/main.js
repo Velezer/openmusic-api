@@ -26,7 +26,7 @@ const AuthenticationsValidator = require('./validator/authentications')
 const TokenManager = require('./tokenize/TokenManager')
 
 const playlists = require('./api/playlists')
-const PlaylistsService = require('./services/playlistsService')
+const PlaylistsService = require('./services/PlaylistsService')
 const PlaylistsValidator = require('./validator/playlists')
 
 const exportPlugin = require('./api/export')
