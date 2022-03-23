@@ -1,3 +1,4 @@
+require('dotenv').config()
 class Listener {
     constructor(playlistService, mailSender) {
         this._playlistService = playlistService
