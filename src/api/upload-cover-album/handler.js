@@ -1,4 +1,3 @@
-
 class UploadHandler {
     constructor(service, validator, albumService) {
         this._service = service
@@ -14,7 +13,8 @@ class UploadHandler {
 
         const { albumId } = request.params
 
-        const fileLocation = await this._service.writeFile(cover, cover.hapi)
+        let fileLocation = await this._service.writeFile(cover, cover.hapi)
+        fileLocation = request.info.host + '/upload/covers/' + fileLocation
         await this._albumService.updateCover(albumId, fileLocation)
 
         const response = h.response({
